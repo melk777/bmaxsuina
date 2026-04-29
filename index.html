@@ -904,21 +904,6 @@
       min-width: 0;
     }
 
-    .form-success {
-      display: none;
-      grid-column: 1 / -1;
-      padding: 16px 18px;
-      border: 1px solid rgba(38, 166, 91, 0.24);
-      border-radius: var(--radius);
-      background: rgba(37, 211, 102, 0.1);
-      color: #1b5e20;
-      font-weight: 700;
-    }
-
-    .form-success.is-visible {
-      display: block;
-    }
-
     .field {
       display: grid;
       gap: 8px;
@@ -1637,9 +1622,6 @@
             <input type="hidden" name="_autoresponse" value="Recebemos sua mensagem e retornaremos em breve. Obrigado pelo contato com a Bmaxbrasil." />
             <input type="hidden" name="_next" id="form-next" value="" />
             <input type="text" name="_honey" style="display:none" tabindex="-1" autocomplete="off" />
-            <div class="form-success" id="form-success" role="status" aria-live="polite">
-              Contato enviado com sucesso. Nossa equipe retornará em breve.
-            </div>
             <div class="field">
               <label for="nome">Nome</label>
               <input id="nome" name="nome" type="text" autocomplete="name" required />
@@ -1743,21 +1725,13 @@
     const menuToggle = document.querySelector(".menu-toggle");
     const navLinks = document.querySelectorAll(".nav-links a");
     const formNext = document.querySelector("#form-next");
-    const formSuccess = document.querySelector("#form-success");
-
     const syncHeaderTheme = () => {
       const heroBottomTrigger = Math.max(heroSection.offsetHeight - siteHeader.offsetHeight, 0);
       siteHeader.classList.toggle("is-scrolled", window.scrollY > heroBottomTrigger);
     };
 
     if (formNext) {
-      formNext.value = `${window.location.origin}${window.location.pathname}?contato=enviado#contato`;
-    }
-
-    const params = new URLSearchParams(window.location.search);
-
-    if (params.get("contato") === "enviado" && formSuccess) {
-      formSuccess.classList.add("is-visible");
+      formNext.value = `${window.location.origin}/obrigado.html`;
     }
 
     menuToggle.addEventListener("click", () => {
