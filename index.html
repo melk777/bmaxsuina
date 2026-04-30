@@ -904,6 +904,30 @@
       min-width: 0;
     }
 
+    .form-feedback {
+      display: none;
+      grid-column: 1 / -1;
+      padding: 16px 18px;
+      border-radius: var(--radius);
+      font-weight: 700;
+    }
+
+    .form-feedback.is-visible {
+      display: block;
+    }
+
+    .form-feedback.is-success {
+      border: 1px solid rgba(38, 166, 91, 0.24);
+      background: rgba(37, 211, 102, 0.1);
+      color: #1b5e20;
+    }
+
+    .form-feedback.is-error {
+      border: 1px solid rgba(198, 40, 40, 0.18);
+      background: rgba(244, 67, 54, 0.08);
+      color: #b71c1c;
+    }
+
     .field {
       display: grid;
       gap: 8px;
@@ -1615,13 +1639,12 @@
             </div>
           </aside>
 
-          <form class="contact-form reveal" action="https://formsubmit.co/jandottivaraujo@gmail.com" method="POST">
+          <form class="contact-form reveal" id="contact-form" action="https://formsubmit.co/ajax/jandottivaraujo@gmail.com" method="POST">
             <input type="hidden" name="_subject" value="Novo contato comercial - Site Bmaxbrasil" />
             <input type="hidden" name="_template" value="table" />
-            <input type="hidden" name="_captcha" value="true" />
-            <input type="hidden" name="_autoresponse" value="Recebemos sua mensagem e retornaremos em breve. Obrigado pelo contato com a Bmaxbrasil." />
-            <input type="hidden" name="_next" id="form-next" value="" />
+            <input type="hidden" name="_captcha" value="false" />
             <input type="text" name="_honey" style="display:none" tabindex="-1" autocomplete="off" />
+            <div class="form-feedback" id="form-feedback" role="status" aria-live="polite"></div>
             <div class="field">
               <label for="nome">Nome</label>
               <input id="nome" name="nome" type="text" autocomplete="name" required />
@@ -1642,7 +1665,7 @@
               <label for="mensagem">Mensagem</label>
               <textarea id="mensagem" name="mensagem" placeholder="Informe volume estimado, frequência e aplicação industrial." required></textarea>
             </div>
-            <button class="btn btn-primary" type="submit">Enviar solicitação comercial</button>
+            <button class="btn btn-primary" id="form-submit" type="submit">Enviar solicitação comercial</button>
           </form>
         </div>
       </div>
@@ -1724,15 +1747,13 @@
     const heroSection = document.querySelector(".hero");
     const menuToggle = document.querySelector(".menu-toggle");
     const navLinks = document.querySelectorAll(".nav-links a");
-    const formNext = document.querySelector("#form-next");
+    const contactForm = document.querySelector("#contact-form");
+    const formFeedback = document.querySelector("#form-feedback");
+    const formSubmit = document.querySelector("#form-submit");
     const syncHeaderTheme = () => {
       const heroBottomTrigger = Math.max(heroSection.offsetHeight - siteHeader.offsetHeight, 0);
       siteHeader.classList.toggle("is-scrolled", window.scrollY > heroBottomTrigger);
     };
-
-    if (formNext) {
-      formNext.value = `${window.location.origin}/obrigado.html`;
-    }
 
     menuToggle.addEventListener("click", () => {
       const isOpen = body.classList.toggle("menu-open");
@@ -1751,6 +1772,47 @@
     window.addEventListener("scroll", syncHeaderTheme, { passive: true });
     window.addEventListener("resize", syncHeaderTheme);
     syncHeaderTheme();
+
+    if (contactForm && formFeedback && formSubmit) {
+      contactForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        if (!contactForm.reportValidity()) {
+          return;
+        }
+
+        formFeedback.className = "form-feedback";
+        formFeedback.textContent = "";
+        formSubmit.disabled = true;
+        formSubmit.textContent = "Enviando...";
+
+        try {
+          const response = await fetch(contactForm.action, {
+            method: "POST",
+            body: new FormData(contactForm),
+            headers: {
+              Accept: "application/json"
+            }
+          });
+
+          const result = await response.json();
+
+          if (!response.ok || !result.success) {
+            throw new Error(result.message || "Nao foi possivel enviar o formulario.");
+          }
+
+          contactForm.reset();
+          formFeedback.textContent = "Contato enviado com sucesso. Nossa equipe retornara em breve.";
+          formFeedback.classList.add("is-visible", "is-success");
+        } catch (error) {
+          formFeedback.textContent = "Nao foi possivel enviar agora. Tente novamente em instantes ou fale conosco pelo WhatsApp.";
+          formFeedback.classList.add("is-visible", "is-error");
+        } finally {
+          formSubmit.disabled = false;
+          formSubmit.textContent = "Enviar solicitacao comercial";
+        }
+      });
+    }
 
     const revealObserver = new IntersectionObserver(
       (entries) => {
